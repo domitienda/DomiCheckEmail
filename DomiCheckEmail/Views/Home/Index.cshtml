@@ -1,0 +1,133 @@
+﻿@model DomiCheckEmail.Models.HomeModel
+@{
+    ViewBag.Title = "DomiCheckEmail - Domitienda";
+}
+
+<div style="margin-top: 50px;">
+    <table style="width: 100%; margin-bottom: 30px;">
+        <tr>
+            <td>
+                Dirección del servidor / IP
+            </td>
+            <td>
+                @Html.TextBoxFor(x => x.Servidor, new { id = "txtServidor", style = "width:200px;" })
+            </td>
+            <td>
+                Puerto (25 / 587)
+            </td>
+            <td>
+                @Html.TextBoxFor(x => x.Puerto, new { id = "txtPuerto", style = "width:80px;" })
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Usuario (ejemplo@ejemplo.com)
+            </td>
+            <td>
+                @Html.TextBoxFor(x => x.Usuario, new { id = "txtUsuario", style = "width:200px;" })
+            </td>
+            <td>
+                Clave
+            </td>
+            <td>
+                @Html.TextBoxFor(x => x.Clave, new { id = "txtClave", style = "width:200px;" })
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Destinatario (ejemplo@ejemplo.com)
+            </td>
+            <td>
+                @Html.TextBoxFor(x => x.Destinatario, new { id = "txtDestinatario", style = "width:200px;" })
+            </td>
+        </tr>
+    </table>
+    <div style="text-align: center;">
+        <input type="button" id="btnComprobar" class="btn btn-success" value="Comprobar Servicio"/>
+        <a href="#myModal" role="button" class="btn btn-info" data-toggle="modal">Código ASP.NET Envío Email</a>
+    </div>
+    <hr/>
+    <table style="width: 100%;">
+        <tr>
+            <td>
+                Logs
+            </td>
+            <td>
+                @Html.TextAreaFor(x => x.Logs, new { id = "txtLogs", @style = "width: 95%;", @readonly = "readonly", cols = "55", rows = "10" })
+            </td>
+        </tr>
+    </table>
+</div>
+
+<!-- Modal -->
+<div id="myModal" style="width: 850px;" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+    <h3 id="myModalLabel">Código Fuente C# Envío Email</h3>
+  </div>
+  <div class="modal-body">
+      <pre>public void EnviarMail(string servidor, string puerto, string usuario, string clave, string destinatario)
+        {
+            var fromAddress = new MailAddress(usuario);
+            var toAddress = new MailAddress(destinatario);
+            var fromPassword = clave;
+            const string subject = "Prueba DomiCheckEmail";
+            const string body = "Esto es una prueba de funcionamiento de correo.";
+
+            var smtp = new SmtpClient
+            {
+                Host = servidor,
+                Port = int.Parse(puerto),
+                EnableSsl = false,
+                DeliveryMethod = SmtpDeliveryMethod.Network,
+                UseDefaultCredentials = true,
+                Credentials = new NetworkCredential(fromAddress.Address, fromPassword)
+            };
+            using (var message = new MailMessage(fromAddress, toAddress)
+            {
+                Subject = subject,
+                Body = body
+            })
+            {
+                smtp.Send(message);
+            }
+        }</pre>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-danger" data-dismiss="modal" aria-hidden="true">Close</button>
+  </div>
+</div>
+
+<script type="text/javascript">
+    $(function () {
+        $("#btnComprobar").click(function () {
+            var servidor = $("#txtServidor").val();
+            var puerto = $("#txtPuerto").val();
+            var usuario = $("#txtUsuario").val();
+            var clave = $("#txtClave").val();
+            var destinatario = $("#txtDestinatario").val();
+
+            $.ajax(
+                {
+                    async: false,
+                    type: "POST",
+                    url: "/Home/EnviarMail",
+                    data: {
+                        servidor: servidor,
+                        puerto: puerto,
+                        usuario: usuario,
+                        clave: clave,
+                        destinatario: destinatario
+                    },
+                    success:
+                        function (result) {
+                            if (result.success) {
+                                $("#txtLogs").val(result.log);
+                            } else {
+                                alert(result.log);
+                            }
+                        }
+                });
+        });
+    });
+</script>
